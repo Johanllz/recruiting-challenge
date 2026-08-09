@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { db } from './db.js';
 
 declare global {
   namespace Express {
@@ -17,6 +18,11 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   const merchantId = req.header('X-Merchant-Id');
   if (!merchantId) {
     res.status(401).json({ error: 'missing_merchant_id' });
+    return;
+  }
+  const merchant = db.prepare(`SELECT id FROM merchants WHERE id = ?`).get(merchantId);
+  if (!merchant) {
+    res.status(401).json({ error: 'unknown_merchant' });
     return;
   }
   req.merchantId = merchantId;

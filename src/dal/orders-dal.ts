@@ -20,19 +20,22 @@ export interface OrderRow {
 export const ordersDal = {
   listByMerchant(merchantId: string, opts: { from?: string; to?: string; limit?: number } = {}): OrderRow[] {
     const limit = opts.limit ?? 100;
-    if (opts.from && opts.to) {
-      return db
-        .prepare(
-          `SELECT * FROM orders
-           WHERE merchant_id = ? AND created_at >= ? AND created_at < ?
-           ORDER BY created_at DESC
-           LIMIT ?`,
-        )
-        .all(merchantId, opts.from, opts.to, limit) as OrderRow[];
+    const conditions = ['merchant_id = ?'];
+    const params: Array<string | number> = [merchantId];
+    if (opts.from) {
+      conditions.push('created_at >= ?');
+      params.push(opts.from);
     }
+    if (opts.to) {
+      conditions.push('created_at < ?');
+      params.push(opts.to);
+    }
+    params.push(limit);
     return db
-      .prepare(`SELECT * FROM orders WHERE merchant_id = ? ORDER BY created_at DESC LIMIT ?`)
-      .all(merchantId, limit) as OrderRow[];
+      .prepare(
+        `SELECT * FROM orders WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC LIMIT ?`,
+      )
+      .all(...params) as OrderRow[];
   },
 
   getById(id: string): OrderRow | undefined {
@@ -48,13 +51,19 @@ export const ordersDal = {
   },
 
   /**
-   * Sum total_amount over a date range for a merchant.
+   * Net revenue over a date range for a merchant: sales add, refunds subtract.
    * Used by the revenue endpoint.
    */
   sumAmountByMerchant(merchantId: string, from: string, to: string): number {
     const row = db
       .prepare(
-        `SELECT COALESCE(SUM(total_amount), 0) AS total
+        `SELECT COALESCE(SUM(
+           CASE
+             WHEN type = 'sale' THEN total_amount
+             WHEN type = 'refund' THEN -total_amount
+             ELSE 0
+           END
+         ), 0) AS total
          FROM orders
          WHERE merchant_id = ? AND created_at >= ? AND created_at < ?`,
       )
