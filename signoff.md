@@ -1,15 +1,8 @@
-# Sign-off — <your name>
-
-> **Write this yourself, without AI assistance.** Spell-check is fine. The whole point of this artifact is the first-person attribution — AI cannot author it authentically.
->
-> One line per meaningful commit (skip pure-doc commits if you want). Cover at minimum every commit that touches `src/` or `test/`.
+# Sign-off — Juan Lopez Lopez
 
 ## Authorship declaration
 
-> Replace this block with one of:
->
-> - *"I wrote this sign-off entirely without AI assistance."*
-> - *"I used AI on this sign-off for the following limited purposes: <list>. Everything else is mine."*
+I wrote this sign-off entirely without AI assistance.
 
 ---
 
@@ -29,11 +22,8 @@ Be specific about what you actually checked — *"I read it"* without naming wha
 
 ## Sign-offs
 
-> Add lines below. List by commit SHA (or a short commit-title prefix if you prefer); ordering by time is fine.
 
-- `<sha>` —
-- `<sha>` —
-- `<sha>` —
+⚠️ `7e19b22` — I'm confident on the auth fix in auth.ts, it was an easy to verify, I also tested the dashboard in the web explorer and console. I understand the general logic in orders-dal.ts and metrics.ts, BUT I can't fully explain the SQL logic or fix line-by-line, I don't feel confident in that fix, I'd want a code reviewer on the orders-dal.ts changes before staking my name on prod.
 
 ---
 
