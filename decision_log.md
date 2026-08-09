@@ -56,6 +56,7 @@ I wrote this entire decision log by myself without any AI correction tool or spe
 -Finish the rest of the mds
 -Run longer tests and add more improvements to the dashboard like UI.
 -Better fixes for the security gaps found (for example the merchant id security gap).
+-Most importat, I would also implement the feature A, But I ran out of time
 
 
 ## Where I felt uncertain
