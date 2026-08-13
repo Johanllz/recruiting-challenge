@@ -1298,13 +1298,9 @@ Deployment checklist (for decision_log.md)
 
 Commit: f51776c — ready to ship.
 
-
-
-**Prompt 6:**
-```
-```
-**What the model returned:**
 **What I accepted, rejected, or refined:**
+
+I never allowed or told explicity to claude to send the commits after doing his changes, however he did 2 commits without my authorization. I found this on the repo by looking of the commits, I had to redo his commits, and force and edit my commits. Besides that I accepted the implementation of the feature and the filling of the documentation and architecture. 
 
 
 ## What Claude (or your AI tool) got wrong
@@ -1347,3 +1343,15 @@ Would you like me to revert the changes I just made to the codebase, or leave th
 - **How I caught it: I read the output from the frist session, specifically: "El doc 2 dice "las refunds aumentan el revenue en vez de restarlo" — mismo hallazgo, pero sin proof." **
 - **What I did instead: I asked claude later to not consider refunds in total orders, it should be a different class. **
 
+### Example 5
+
+- **The prompt:  Now plannify how can we implement the Feature A, ways to implemente it, and possible conflicts or things that may not work**
+- **What Claude returned: Explore(Explore frontend, db schema, tests)
+Backgrounded agent (↓ to manage · ctrl+o to expand)
+I've sent an agent to pull the exact current state of db.ts, public/index.html, public/app.js, and the test file so the plan is grounded in real code rather than assumptions. I'll build the plan once it reports back.
+● Agent "Explore frontend, db schema, tests" finished · 48s
+● Updated plan
+● User approved Claude's plan"
+- **What was wrong with it: Claude code automatically sent the commits to the fork without my authorization or knowing he shouldn'tt commit **
+- **How I caught it: I check the commit changes in the repo, found that two were made by Claude **
+- **What I did instead: I had to redo his commits, and force mine to merge in the repo **

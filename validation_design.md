@@ -1,15 +1,9 @@
 # Validation design — Juan Lopez Lopez
 
-> **Write this yourself, without AI assistance.** Spell-check is fine. AI-drafted validation design is an automatic decline — this artifact measures *your* judgment about how to make AI-augmented code safe to ship, which is the load-bearing architect-tier signal.
->
-> ~300 words total. Concrete, named gates only — not philosophy.
 
 ## Authorship declaration
 
-> Replace this block with one of:
->
-> - *"I wrote this validation design entirely without AI assistance. The only tool I used was spell-check."*
-> - *"I used AI on this validation design for the following limited purposes: <list each use>. Everything else is mine."*
+I wrote this validation design entirely without AI assistance. I used AI on this validation design to understand what was changed in the dashboard, everything else is mine.
 
 ---
 
@@ -55,7 +49,7 @@ For each issue *class* you addressed (not each instance — group by class):
 - **The gate I built (or would build):**  I would create a rule that forces the files to use one shared math formula instead of letting them all calculate the math by themselves.
 - **What this gate would catch that a regression test would miss:** If we add any other rule or parameter in the future (like taxes, losses, etc), by having only one shared formula we would just need to update this formula without modifying the other files separately.
 - **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
-- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.
+- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experience fixing bugs in web development, I decided to fix the issue with claude instead of going further.
 ---
 
 ## Anti-patterns we score against
