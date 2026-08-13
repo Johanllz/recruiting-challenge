@@ -93,6 +93,33 @@ Create an order for the authenticated merchant.
 **Response:** `201 { "order": OrderRow }`, or `400 { "error": "invalid_body" }` if
 `customer_email` is missing or `total_amount` isn't a number.
 
+## `GET /api/orders/export?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+Export orders for the authenticated merchant in a date range as a CSV file.
+
+**Query params (both required):**
+- `from` — `created_at >= from` (inclusive).
+- `to` — `created_at < to` (exclusive, same semantics as `/api/orders`).
+
+Missing either `from` or `to` returns `400 { "error": "missing_date_range", "detail": "from and to are required (YYYY-MM-DD)" }`.
+
+**Response:** `200` with `Content-Type: text/csv; charset=utf-8` and a CSV file attachment. The CSV includes a UTF-8 BOM and CRLF line endings (Excel-compatible). Columns are:
+
+| Column | Format | Notes |
+|---|---|---|
+| `order_id` | string | |
+| `created_at` | ISO 8601 string | the raw timestamp |
+| `customer_email` | string, CSV-escaped | |
+| `type` | `'sale'` \| `'refund'` | |
+| `status` | string | |
+| `amount_usd` | signed decimal, 2 places | negative for refunds, no currency symbol (so spreadsheet `SUM()` works directly) |
+
+Refunds appear as negative amounts (e.g., `-50.00` for a $50 refund), matching the netting convention used in revenue/metrics calculations. An empty date range (no matching rows) returns only the header row, not an error. CSV fields containing a comma, quote, or newline are quoted and internal quotes are doubled (RFC 4180).
+
+**Known quirks:**
+- `customer_email` is unvalidated user input; a value starting with `=`, `+`, `-`, or `@` may be interpreted as a formula when opened in Excel/Sheets (not neutralized by RFC 4180 quoting alone).
+- If the database throws an error partway through iteration, the response headers are already committed (200 OK, attachment header), so the client receives a truncated/invalid CSV instead of a proper error response. This is a tradeoff of streaming; buffering the entire result would defeat the purpose.
+
 ## `GET /api/revenue?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 Total revenue for the authenticated merchant in `[from, to)`.

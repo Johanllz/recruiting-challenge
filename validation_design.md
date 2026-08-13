@@ -44,15 +44,15 @@ For each issue *class* you addressed (not each instance — group by class):
 ### Class 2 — Unknown Merchant bug
 
 - **Instances I fixed:** There was a check to verifiy if Merchant-Id existed, but it never verified if the id really existed in the database, so any fake ID was accepted crashing the server with a 500 error.
-- **The gate I built (or would build):**  I would add another step or extra (verification gate) step to verifiy if the merchant actually exists in the database, This would ensure no fake IDs reach into the data.
-- **What this gate would catch that a regression test would miss:**  
+- **The gate I built (or would build):**  I would add another step or extra layer at the top (verification gate) to verifiy if the merchant actually exists in the database, This would ensure no fake IDs reach into the data.
+- **What this gate would catch that a regression test would miss:**  A regression test would only check if one specific page is protected against fake IDs, but if we buld another page tomorrow this test wont protect or test this new one. If we implement this layer at the top all the new pages would be protected o tested automatically. 
 - **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
 - **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.
 
 ### Class 3 — Refund math bug
 
 - **Instances I fixed:** The revenue was calculated wrongly, the refund was not being substract from the total. 
-- **The gate I built (or would build):**  I would create a rule that forces the files to use una shared math formula instead of letting them all calculate the math by themselves.
+- **The gate I built (or would build):**  I would create a rule that forces the files to use one shared math formula instead of letting them all calculate the math by themselves.
 - **What this gate would catch that a regression test would miss:** If we add any other rule or parameter in the future (like taxes, losses, etc), by having only one shared formula we would just need to update this formula without modifying the other files separately.
 - **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
 - **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.

@@ -18,7 +18,7 @@ I wrote this entire decision log by myself without any AI correction tool or spe
   - Alternatives I considered and rejected: Rejecting dates before certain year, for example before 1900 (non existant).
 
 - **Issue 2 — merchant_id**
-  - What was wrong or weak: There was no verification to the merchant_id before, it would accept any string, 
+  - What was wrong or weak: There was no verification to the merchant_id before, would't verify if it was actually in the database 
   - Shape of my improvement: A query was added to the merchants table before continuing to verify the merchant exists, in case it doesn't returns a 401 error.
   - **Confidence (1–10): 4 **
   - **What would falsify this fix: Sending a non existant merchant_id and getting something different from the 401 would imply this fix is weak and not the best approach. **
@@ -52,9 +52,9 @@ I wrote this entire decision log by myself without any AI correction tool or spe
 ## What I'd do with another 6 hours
 
 -Use other AI like Deepseek or Codex as a second or third auditor to verify the whole project like I did with Gemini and CLaude. 
--Finish the rest of the mds
 -Run longer tests and add more improvements to the dashboard like UI.
 -Better fixes for the security gaps found (for example the merchant id security gap).
+-Try to fix the secondary issues found by claude and Gemini.
 
 
 ## Where I felt uncertain
