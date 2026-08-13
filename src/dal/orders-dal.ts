@@ -70,4 +70,14 @@ export const ordersDal = {
       .get(merchantId, from, to) as { total: number };
     return row.total;
   },
+
+  iterateByMerchant(merchantId: string, from: string, to: string): IterableIterator<OrderRow> {
+    return db
+      .prepare(
+        `SELECT * FROM orders
+         WHERE merchant_id = ? AND created_at >= ? AND created_at < ?
+         ORDER BY created_at DESC`,
+      )
+      .iterate(merchantId, from, to) as IterableIterator<OrderRow>;
+  },
 };

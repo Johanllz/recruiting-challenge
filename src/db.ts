@@ -32,5 +32,6 @@ export function initSchema(): void {
 
     CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
     CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+    CREATE INDEX IF NOT EXISTS idx_orders_merchant_created ON orders(merchant_id, created_at);
   `);
 }

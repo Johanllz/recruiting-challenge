@@ -13,6 +13,46 @@ ordersRouter.get('/', (req, res) => {
   res.json({ orders });
 });
 
+ordersRouter.get('/export', (req, res) => {
+  const from = typeof req.query.from === 'string' ? req.query.from : undefined;
+  const to = typeof req.query.to === 'string' ? req.query.to : undefined;
+  if (!from || !to) {
+    res.status(400).json({ error: 'missing_date_range', detail: 'from and to are required (YYYY-MM-DD)' });
+    return;
+  }
+
+  const merchantId = req.merchantId!;
+  const filename = `orders_${merchantId}_${from}_${to}.csv`;
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+  res.write('﻿');
+  res.write('order_id,created_at,customer_email,type,status,amount_usd\r\n');
+
+  for (const row of ordersDal.iterateByMerchant(merchantId, from, to)) {
+    const amountUsd = row.type === 'refund' ? -(row.total_amount / 100) : row.total_amount / 100;
+    const cells = [
+      escapeCsvField(row.id),
+      escapeCsvField(row.created_at),
+      escapeCsvField(row.customer_email),
+      escapeCsvField(row.type),
+      escapeCsvField(row.status),
+      amountUsd.toFixed(2),
+    ];
+    res.write(cells.join(',') + '\r\n');
+  }
+
+  res.end();
+});
+
+function escapeCsvField(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return '"' + value.replace(/"/g, '""') + '"';
+  }
+  return value;
+}
+
 ordersRouter.get('/:id', (req, res) => {
   const order = ordersDal.getById(req.params.id);
   if (!order) {

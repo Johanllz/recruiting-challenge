@@ -44,3 +44,36 @@ async function refresh() {
 
 select.addEventListener('change', refresh);
 refresh();
+
+const exportButton = document.getElementById('export-button');
+const exportFromEl = document.getElementById('export-from');
+const exportToEl = document.getElementById('export-to');
+
+exportButton.addEventListener('click', async () => {
+  const from = exportFromEl.value;
+  const to = exportToEl.value;
+  if (!from || !to) {
+    alert('Please select both start and end dates');
+    return;
+  }
+
+  try {
+    const url = `/api/orders/export?from=${from}&to=${to}`;
+    const res = await fetch(url, { headers: { 'X-Merchant-Id': select.value } });
+    if (!res.ok) {
+      const error = await res.json();
+      alert(`Error: ${error.detail || error.error}`);
+      return;
+    }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `orders_${from}_${to}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    alert(`Download failed: ${e.message}`);
+  }
+});

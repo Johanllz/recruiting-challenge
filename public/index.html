@@ -44,6 +44,17 @@
 
     <section>
       <h2>Recent orders</h2>
+      <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: end;">
+        <label>
+          From:
+          <input type="date" id="export-from" />
+        </label>
+        <label>
+          To:
+          <input type="date" id="export-to" />
+        </label>
+        <button id="export-button">Download CSV</button>
+      </div>
       <table>
         <thead>
           <tr><th>Date</th><th>Customer</th><th>Type</th><th>Amount</th></tr>
