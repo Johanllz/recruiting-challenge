@@ -33,22 +33,29 @@ Forms a gate can take, in rough order of robustness:
 
 For each issue *class* you addressed (not each instance — group by class):
 
-### Class 1 — <name the class, e.g. "Multi-tenant authorization (IDOR)">
+### Class 1 — Extra parameters ignored instead of validated
 
-- **Instances I fixed:** <list, e.g. "Bug B in GET /api/orders/:id">
-- **The gate I built (or would build):** <specific name and shape>
-- **What this gate would catch that a regression test would miss:** <the next instance, the next refactor, the next team member>
+- **Instances I fixed:** The filter requiring both from/to in listByMerchant, the filter previously required both from/to to filter, if we have two paremeters that combine, and we just sent one, the system stays silent insteaf of returning an error message or failing.
+- **The gate I built (or would build):**  I would implement a better test, (random parameters filtering) for example instead of testing just one specific date I would test random combinations of FROM and TO, to verify that a filtered result alwasy work and we dont get a silent ignore.
+- **What this gate would catch that a regression test would miss:** Anywhere in the dashborard where we need to filter data with two or more diferent parameters, or with just one
 - **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
-- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"):
+- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.
 
-### Class 2 — <name the class>
+### Class 2 — Unknown Merchant bug
 
-…
+- **Instances I fixed:** There was a check to verifiy if Merchant-Id existed, but it never verified if the id really existed in the database, so any fake ID was accepted crashing the server with a 500 error.
+- **The gate I built (or would build):**  I would add another step or extra (verification gate) step to verifiy if the merchant actually exists in the database, This would ensure no fake IDs reach into the data.
+- **What this gate would catch that a regression test would miss:**  
+- **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
+- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.
 
-### Class 3 — <name the class>
+### Class 3 — Refund math bug
 
-…
-
+- **Instances I fixed:** The revenue was calculated wrongly, the refund was not being substract from the total. 
+- **The gate I built (or would build):**  I would create a rule that forces the files to use una shared math formula instead of letting them all calculate the math by themselves.
+- **What this gate would catch that a regression test would miss:** If we add any other rule or parameter in the future (like taxes, losses, etc), by having only one shared formula we would just need to update this formula without modifying the other files separately.
+- **Where to see the gate in the diff** (file path / commit / line range) — *if you actually built it*:
+- **If you did not build it,** name the reason (scope, time, dependency, "this is the right call but needs a wider conversation"): My lack of expertise and experiencie fixing bugs in web development, I decided to fix the issue with claude instead of going further.
 ---
 
 ## Anti-patterns we score against

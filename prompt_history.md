@@ -1015,6 +1015,118 @@ Nothing else was touched — ISSUES.md, decision_log.md, and the code itself are
 It was all accepted, This session was mostly to understand better what was changed, and to ask Claude to modify the documentation of the dashboard.
 ---
 
+### Session 5 — Context refresh
+
+
+**Prompt 1:**
+```
+we're rataking this dashborard, refresh your memory, we fixed 3 bugs, (date filter, merchant id, refunds). Can you validate
+```
+**What the model returned:**
+Perfect — all three fixes validate. Here's what's confirmed in place:
+
+✓ Fix 1: Partial Date Range Filtering
+
+[✓ PASS] from=2099-01-01 (future) returns 0 orders → got 0
+[✓ PASS] to=2000-01-01 (past) returns 0 orders → got 0
+[✓ PASS] neither from nor to returns recent orders (unfiltered) → got 40
+Code location: src/dal/orders-dal.ts:21-32 — the listByMerchant() method now applies from and to conditions independently instead of requiring both.
+
+✓ Fix 2: Unknown Merchant Validation
+
+[✓ PASS] POST with unknown merchant → 401 → status 401
+[✓ PASS] Unknown merchant error is "unknown_merchant" → got unknown_merchant
+[✓ PASS] GET with unknown merchant → 401 → status 401
+Code location: src/auth.ts:23-27 — authMiddleware now checks if the merchant ID exists in the database, rejecting unknown IDs with a clean 401 instead of letting them crash downstream.
+
+✓ Fix 3: Refund Netting
+
+[✓ PASS] [m_acme] revenue nets refunds → expected 348897, got 348897
+[✓ PASS] [m_acme] total_orders excludes refunds → expected 35, got 35
+[✓ PASS] [m_acme] avg_order_value excludes refunds → expected 11871, got 11871
+Code locations:
+- src/dal/orders-dal.ts:57-72 — sumAmountByMerchant() now uses CASE WHEN type = 'sale' THEN add, WHEN type = 'refund' THEN subtract
+- src/routes/metrics.ts:18-30 — /summary endpoint filters on type = 'sale' for order count and average
+- src/routes/metrics.ts:41-65 — /top-customers uses the same netting logic (refunds subtract, sales add)
+
+All three fixes are live, tested, and working correctly against real merchant data.
+
+**Prompt 2:**
+```
+[In Agent mode] --- check if the documentation is up to date, read the submission md and help me verifiy my other artifacts are correct, don't modify anything. After that help me work with valdiation_design, we need to identify gates that weould prevent the bugs we fixed from happening again, i'll write the missing content myself
+```
+
+**What the model returned:**
+Documentation check
+
+docs/api.md — up to date. It was rewritten this session against the actual post-fix code and reflects current behavior accurately, including the known quirks we discussed.
+
+docs/architecture.md — stale. Still self-labeled "DRAFT — needs love" and hasn't been touched to reflect the three fixes (confirmed via git diff earlier — only auth.ts, orders-dal.ts, metrics.ts, and docs/api.md changed this session). You didn't ask me to fix it, just flagging it as out of date.
+
+Artifact check against SUBMISSION.md's requirements
+
+┌──────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│       Artifact       │                                                 Status                                                  │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ decision_log.md      │ Filled, human-voiced. Issue 3 (refund netting) is missing its confidence / falsification / disagreement │
+│                      │  fields. "Feature chosen" section is blank — no Feature A/B built yet.                                  │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ written_answers.md   │ Filled, all 3 questions answered with real past-tense stories.                                          │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ signoff.md           │ Only one line, on commit 7e19b22. The template implies one line per meaningful commit — this looks      │
+│                      │ incomplete relative to your actual commit count.                                                        │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                      │ Substantial raw transcript, tool usage declared up top. I didn't confirm whether the mandatory closing  │
+│ prompt_history.md    │ section "What Claude got wrong" (3+ examples) is actually present — worth checking yourself since the   │
+│                      │ agent didn't read to the end of the file.                                                               │
+├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                      │ Still the unfilled template — only the name in the title was personalized. Everything else, including   │
+│ validation_design.md │ the authorship declaration, is still bracketed placeholder text. This is a real gap: SUBMISSION.md      │
+│                      │ explicitly names an unfilled validation_design.md as a top decline-risk anti-pattern ("checklist        │
+│                      │ theater"), and your own decision_log.md already flags this as something you're uncertain about.         │
+└──────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+So the two things most worth your attention before submitting: signoff.md (likely needs a line per commit, not just one), and validation_design.md (currently empty).
+
+Validation_design — let's work the gates
+
+Per SUBMISSION.md's rule, this file has to be written by you, no AI. What I can do is help you think through what the gate is for each bug class (not the instance-level regression test — the thing that would catch the next version of this mistake). Here's a starting point for each of the 3 bugs, as prompts to react to, not text to copy:
+
+1. Silent partial-date-filter bypass — the bug wasn't really "date filter is wrong," it was "an optional filter combinator silently no-ops instead of erroring or applying partially." What's the gate that catches that shape of bug elsewhere in the code (any place two optional query params combine)? A regression test only proves this one endpoint works now.
+
+2. Merchant validation — the bug was "auth middleware confirmed a header existed, not that it was real," which let bad IDs travel deep into the app before failing loudly. What's the gate that would catch a future route added behind this same middleware that assumes req.merchantId is trustworthy? Think about where in the request lifecycle that assumption should be enforced once, vs. re-checked per route.
+
+3. Refund netting — the same sale-minus-refund logic got duplicated in three places (revenue, summary, top-customers), and only two of those existed in the DAL where they should have lived. What's the gate that stops that duplication from drifting apart again — is it structural (one shared function, nothing else allowed to touch total_amount directly) or something enforced by tooling (lint/CI rule flagging raw SQL aggregation outside the DAL)?
+
+Want to talk through any of these three in more depth before you write your version, or is that enough to start from?
+
+**Prompt 3:**
+```
+
+```
+**What the model returned:**
+
+
+**Prompt 4:**
+```
+```
+**What the model returned:**
+
+
+**Prompt 5:**
+```
+```
+**What the model returned:**
+
+
+
+**Prompt 6:**
+```
+```
+**What the model returned:**
+**What I accepted, rejected, or refined:**
+
+
 ## What Claude (or your AI tool) got wrong
 
 ### Example 1
